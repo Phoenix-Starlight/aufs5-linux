@@ -2,9 +2,9 @@ name: Makefile CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [ aufs5.18 ]
   pull_request:
-    branches: [ master ]
+    branches: [ aufs5.18 ]
 
 jobs:
   build:
