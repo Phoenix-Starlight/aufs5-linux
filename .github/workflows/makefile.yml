@@ -1,0 +1,46 @@
+name: Makefile CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: configure
+      run: |
+          sudo apt-get update
+          sudo apt-get install ca-certificates git squashfs-tools xz-utils diffutils patch make flex bison python3 bc bzip2 kmod libelf-dev libssl-dev dwarves gcc p7zip
+      
+    - name: Install dependencies
+      run: make oldconfig
+
+    - name: Run build
+      run: make
+      
+    - name: Run module installation
+      run: make INSTALL_MOD_PATH=./output_kernel modules_install
+      
+    - name: Run header installation
+      run: make INSTALL_HDR_PATH=./output_kernel headers_install
+      
+    - name: Packaging
+      if: always()
+      run: |
+         cp arch/x86/boot/bzImage ./output_kernel/vmlinuz
+         cp System.map ./output_kernel
+         7zr a output_kernel.7z output_kernel
+         
+    - name: Upload kernel
+      uses: actions/upload-artifact@v2
+      with:
+          name: headers
+          path: output_kernel.7z
+          retention-days: 14
