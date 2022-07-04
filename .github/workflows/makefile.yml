@@ -34,6 +34,7 @@ jobs:
     - name: Packaging
       if: always()
       run: |
+         cp Module.symvers ./output_kernel
          cp arch/x86/boot/bzImage ./output_kernel/vmlinuz
          cp System.map ./output_kernel
          7zr a output_kernel.7z output_kernel
