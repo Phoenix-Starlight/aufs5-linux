@@ -14,12 +14,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - name: configure
+    - name: Install dependencies
       run: |
           sudo apt-get update
           sudo apt-get install ca-certificates git squashfs-tools xz-utils diffutils patch make flex bison python3 bc bzip2 kmod libelf-dev libssl-dev dwarves gcc p7zip
       
-    - name: Install dependencies
+    - name: Configure
       run: make oldconfig
 
     - name: Run build
@@ -34,13 +34,27 @@ jobs:
     - name: Packaging
       if: always()
       run: |
+         cp Module.symvers ./output_kernel
          cp arch/x86/boot/bzImage ./output_kernel/vmlinuz
          cp System.map ./output_kernel
-         7zr a output_kernel.7z output_kernel
+         7zr a modules.7z output_kernel/lib output_kernel/vmlinuz
+         7zr a headers.7z output_kernel/include
+         7zr a sources.7z output_kernel/Module.symvers output_kernel/System.map
          
-    - name: Upload kernel
+    - name: Upload kernel headers
       uses: actions/upload-artifact@v2
       with:
           name: headers
-          path: output_kernel.7z
-          retention-days: 14
+          path: headers.7z
+
+    - name: Upload kernel modules and image
+      uses: actions/upload-artifact@v2
+      with:
+          name: modules
+          path: modules.7z
+
+    - name: Upload kernel sources (excluding kernel tree)
+      uses: actions/upload-artifact@v2
+      with:
+          name: sources
+          path: sources.7z
